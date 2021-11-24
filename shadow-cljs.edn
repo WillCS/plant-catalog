@@ -1,0 +1,8 @@
+;; shadow-cljs configuration
+{:source-paths ["src"]
+
+ :dependencies [[reagent "1.1.0"]]
+
+ :builds {:webapp {:target :node-script
+                   :output-to "build/main.js"
+                   :main plant-catalog.core/main}}}
