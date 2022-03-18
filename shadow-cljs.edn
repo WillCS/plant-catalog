@@ -15,13 +15,13 @@
 
         :modules
         {:main
-         {:entries [plant-catalog.core]}}
+         {:entries [webapp.core]}}
 
         :devtools
         ;; before live-reloading any code call this function
-        {:before-load plant-catalog.core/stop
+        {:before-load webapp.core/stop
          ;; after live-reloading finishes call this function
-         :after-load plant-catalog.core/start
+         :after-load webapp.core/start
          ;; serve the public directory over http at port 8700
          :http-root    "public"
          :http-port    8700
