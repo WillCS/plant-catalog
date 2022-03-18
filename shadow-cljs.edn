@@ -1,8 +1,29 @@
 ;; shadow-cljs configuration
-{:source-paths ["src"]
+{:source-paths
+ ["src"]
 
- :dependencies [[reagent "1.1.0"]]
+ :dependencies [[binaryage/devtools "0.9.7"]
+                [reagent "0.8.0-alpha2"]]
 
- :builds {:webapp {:target :node-script
-                   :output-to "build/main.js"
-                   :main plant-catalog.core/main}}}
+ ;; set an nrepl port for connection to a REPL.
+ :nrepl        {:port 8777}
+
+ :builds
+ {:app {:target :browser
+        :output-dir "public/js/compiled"
+        :asset-path "/js/compiled"
+
+        :modules
+        {:main
+         {:entries [plant-catalog.core]}}
+
+        :devtools
+        ;; before live-reloading any code call this function
+        {:before-load plant-catalog.core/stop
+         ;; after live-reloading finishes call this function
+         :after-load plant-catalog.core/start
+         ;; serve the public directory over http at port 8700
+         :http-root    "public"
+         :http-port    8700
+         :preloads     [devtools.preload]}
+        }}}
