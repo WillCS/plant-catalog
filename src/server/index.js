@@ -1,6 +1,6 @@
 const express = require("express");
 const disk    = require("diskusage");
-const { Sequelize, DataTypes } = require("sequelize");
+const { Sequelize, DataTypes, STRING, INTEGER } = require("sequelize");
 
 const sequelize = new Sequelize("postgres://postgres:postgress@localhost:5432/plant-catalog");
 
@@ -36,11 +36,27 @@ app.post("/plant", (req, res) => {
   // Plant.create(req.body)
 });
 
-app.get("/plant/:plant_id", () => {});
+app.get("/plant/:plant_id", (req, res) => {
+  Plant.findByPk(req.params.plant_id).then(result => {
+    if(result) {
+      res.send(result.toJSON());
+    } else {
+      res.sendStatus(404);
+    }
+  }).catch(err => {
+    res.sendStatus(404);
+  });
+});
 
 app.put("/plant/:plant_id", () => {});
 
-app.delete("/plant/:plant_id", () => {});
+app.delete("/plant/:plant_id", (req, res) => {
+  Plant.destroy({ where: { plant_id: req.params.plant_id }}).then(result => {
+    res.sendStatus(200);
+  }).catch(err => {
+    res.sendStatus(404);
+  });
+});
 
 app.get("/plant/:plant_id/images", () => {});
 
@@ -50,30 +66,34 @@ app.get("/plant/:plant_id/image/:image_id?", () => {});
 
 app.delete("/plant/:plant_id/image/:image_id", () => {});
 
+const LightLevelEnum = DataTypes.ENUM('indirect', 'partial', 'full');
+const AcidityEnum    = DataTypes.ENUM('basic', 'slightly_basic', 'neutral', 'slightly_acidic', 'acidic');
+
 const Plant = sequelize.define("Plant", {
   plant_id: {
     type:          DataTypes.INTEGER,
     primaryKey:    true,
     autoIncrement: true
   },
-  species: {
-    type: DataTypes.STRING(128),
-  },
-  colloquial_name: {
-    type: DataTypes.STRING(128)
-  },
-  nickname: {
-    type: DataTypes.STRING(128)
-  },
-  help_url: {
-    type: DataTypes.STRING(128)
-  },
-  notes: {
-    type: DataTypes.STRING(1024)
-  }
+  species:              { type: DataTypes.STRING(128) },
+  colloquial_name:      { type: DataTypes.STRING(128) },
+  nickname:             { type: DataTypes.STRING(128) },
+  watering_schedule_id: { type: INTEGER },
+  light_needs:          { type: LightLevelEnum },
+  feeding_schedule_id:  { type: INTEGER },
+  ph_needs:             { type: AcidityEnum },
+  help_url:             { type: DataTypes.STRING(128) },
+  notes:                { type: DataTypes.STRING(1024) }
 }, {
   tableName:  "plants",
-  timestamps: false
+  timestamps: false,
+  validate: {
+    isNamed() {
+      if(!(this.nickname || this.species || this.colloquial_name)) {
+        throw new Error("Plant must be named.")
+      }
+    }
+  }
 });
 
 const Image = sequelize.define("Image", {
@@ -82,20 +102,37 @@ const Image = sequelize.define("Image", {
     primaryKey:    true,
     autoIncrement: true
   },
-  plant_id: {
-    type:       DataTypes.INTEGER,
-    allowNull: false
-  },
-  image_url: {
-    type:      DataTypes.STRING(256),
-    allowNull: false
-  },
-  image_date: {
-    type:      DataTypes.DATE,
-    allowNull: false
-  }
+  plant_id: { type: DataTypes.INTEGER,     allowNull: false },
+  filename: { type: DataTypes.STRING(256), allowNull: false },
+  date:     { type: DataTypes.DATE,        allowNull: false }
 }, {
   tableName:  "images",
+  timestamps: false
+});
+
+const WateringSchedule = sequelize.define("WateringSchedule", {
+  schedule_id: {
+    type:          DataTypes.INTEGER,
+    primaryKey:    true,
+    autoIncrement: true
+  },
+  name:     { type: STRING(128), allowNull: false },
+  filename: { type: STRING(256), allowNull: false }
+}, {
+  tableName:  "watering_schedules",
+  timestamps: false
+});
+
+const FeedingSchedules = sequelize.define("FeedingSchedule", {
+  schedule_id: {
+    type:          DataTypes.INTEGER,
+    primaryKey:    true,
+    autoIncrement: true
+  },
+  name:     { type: STRING(128), allowNull: false },
+  filename: { type: STRING(256), allowNull: false }
+}, {
+  tableName:  "feeding_schedules",
   timestamps: false
 });
 

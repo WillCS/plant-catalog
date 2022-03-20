@@ -2,3 +2,5 @@
 node_modules
 public/js/compiled/*
 postgresql.local.conf
+.clj-kondo
+.lsp
