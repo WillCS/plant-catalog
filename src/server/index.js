@@ -1,5 +1,6 @@
 const express = require("express");
 const disk    = require("diskusage");
+const cors    = require("cors");
 const { Sequelize, DataTypes, STRING, INTEGER } = require("sequelize");
 
 const sequelize = new Sequelize("postgres://postgres:postgress@localhost:5432/plant-catalog");
@@ -25,8 +26,13 @@ sequelize.authenticate().then(() => {
  *  DELETE /plant/:plant_id/image/:image_id
  */
 
+app.use(cors());
+
 app.get("/plants", (req, res) => {
-  Plant.findAll({ where: req.query }).then(results => {
+  Plant.findAll({
+    attributes: ["plant_id", "species", "colloquial_name", "nickname"],
+    where:      req.query
+  }).then(results => {
     res.send(results.map(r => r.toJSON()));
   });
 });
